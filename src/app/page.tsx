@@ -6,6 +6,7 @@ import { faArrowDown, faCopy } from '@fortawesome/free-solid-svg-icons';
 interface UrlPair {
   originalUrl: string;
   shortenedUrl: string;
+  expiryDays: number;
 }
 
 export default function Home() {
@@ -21,6 +22,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           url: url,
+          expiration_time: 7,
           anonymous: true
         })
       });
@@ -28,9 +30,10 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         const newShortenedUrl = `http://127.0.0.1:443/${data.hash}`;
-        const newUrlPair = { originalUrl: url, shortenedUrl: newShortenedUrl };
+        const expiryDays = data.expiryDays;
+        const newUrlPair = { originalUrl: url, shortenedUrl: newShortenedUrl , expiryDays: expiryDays};
         setUrlPairs(prevPairs => [...prevPairs, newUrlPair]);
-        setUrl(''); // Clear the input field
+        setUrl(''); 
       } else {
         console.error('Failed to shorten URL');
       }
@@ -102,6 +105,7 @@ export default function Home() {
                   >
                     <FontAwesomeIcon icon={faCopy} />
                   </button>
+                  <span>Expiry after: {urlPair.expiryDays} days</span>
                 </div>
               </li>
             ))}
