@@ -34,7 +34,7 @@ export default function Home() {
         const newShortenedUrl = `${apiEndpoint}/${data.hash}`;
         const expiryDays = data.expiryDays;
         const newUrlPair = { originalUrl: url, shortenedUrl: newShortenedUrl , expiryDays: expiryDays};
-        setUrlPairs(prevPairs => [...prevPairs, newUrlPair]);
+        setUrlPairs(prevPairs => [newUrlPair, ...prevPairs]);
         setUrl(''); 
       } else {
         console.error('Failed to shorten URL');
@@ -80,7 +80,7 @@ export default function Home() {
           placeholder="https://example.com"
           value={url}
           onChange={handleUrlChange}
-          className="block w-full rounded-md border-4 border-indigo-500 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 mr-2"
+          className="block w-full rounded-md border-4 border-indigo-500 py-1.5 pl-5 pr-5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 mr-2"
         />
       </div>
       <div className="mt-4 flex items-center">
@@ -112,25 +112,25 @@ export default function Home() {
           <h3 className="text-lg font-medium">Shortened URLs:</h3>
           <ul className="space-y-4">
             {urlPairs.map((urlPair, index) => (
-              <li key={index} className="bg-white p-4 rounded-lg shadow-md border-4 border-indigo-500">
-                <div>
-                  <span className="text-gray-700 font-semibold">Original URL: </span>
+              <li key={index} className="bg-white p-4 rounded-lg shadow-md border-4 border-indigo-500 text-center">
+                <div className="flex flex-col items-center">
+                  <span className="text-gray-700 font-semibold">Original URL:</span>
                   <a href={urlPair.originalUrl} className="text-blue-500 break-words">{urlPair.originalUrl}</a>
                 </div>
-                <span className="text-black">
+                <span className="text-black mt-2">
                   <FontAwesomeIcon icon={faArrowDown} />
                 </span>
-                <div className="flex items-center">
-                  <span className="text-gray-700 font-semibold">Shortened URL: </span>
-                  <a href={urlPair.shortenedUrl} className="text-blue-500 break-words ml-2">{urlPair.shortenedUrl}</a>
+                <div className="flex flex-col items-center mt-2">
+                  <span className="text-gray-700 font-semibold">Shortened URL:</span>
+                  <a href={urlPair.shortenedUrl} className="text-blue-500 break-words">{urlPair.shortenedUrl}</a>
                   <button
                     onClick={() => handleCopyClick(urlPair.shortenedUrl)}
-                    className="ml-4 px-2 py-1 text-sm font-semibold text-white bg-indigo-600 rounded hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    className="mt-2 px-2 py-1 text-sm font-semibold text-white bg-indigo-600 rounded hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                   >
                     <FontAwesomeIcon icon={faCopy} />
                   </button>
                 </div>
-                <span className="ml-2 text-gray-700">Expire after: {urlPair.expiryDays} days</span>
+                <span className="text-gray-700 mt-2">Expire after: {urlPair.expiryDays} days</span>
               </li>
             ))}
           </ul>
