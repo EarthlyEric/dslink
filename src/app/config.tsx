@@ -1,1 +1,1 @@
-export const apiEndpoint = process.env.APIENDPOINT_URL;
+export const apiEndpoint = 'https://dslink-api.zeabur.app';
