@@ -1,9 +1,16 @@
 'use client';
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowDown, faCopy } from '@fortawesome/free-solid-svg-icons';
+
+interface UrlPair {
+  originalUrl: string;
+  shortenedUrl: string;
+}
 
 export default function Home() {
-  const [url, setUrl] = useState('');
-  const [shortenedUrl, setShortenedUrl] = useState('');
+  const [url, setUrl] = useState<string>('');
+  const [urlPairs, setUrlPairs] = useState<UrlPair[]>([]);
 
   const handleShortenClick = async () => {
     try {
@@ -20,7 +27,10 @@ export default function Home() {
 
       if (response.ok) {
         const data = await response.json();
-        setShortenedUrl(`http://127.0.0.1:443/${data.hash}`);
+        const newShortenedUrl = `http://127.0.0.1:443/${data.hash}`;
+        const newUrlPair = { originalUrl: url, shortenedUrl: newShortenedUrl };
+        setUrlPairs(prevPairs => [...prevPairs, newUrlPair]);
+        setUrl(''); // Clear the input field
       } else {
         console.error('Failed to shorten URL');
       }
@@ -29,41 +39,73 @@ export default function Home() {
     }
   };
 
+  const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value);
+  };
+
+  const handleCopyClick = async (shortenedUrl: string) => {
+    try {
+      await navigator.clipboard.writeText(shortenedUrl);
+      alert('Shortened URL copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy the URL', error);
+    }
+  };
+
   return (
-    <div className="min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8 grid grid-cols-1 mx-10 rounded-lg border-2">
+    <div className="min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8 grid grid-cols-1 mx-10 rounded-lg border-4">
       <div className="flex justify-center">
-        <h1 className="text-3xl font-bold italic">Welcome to DSLink !</h1>
+        <h1 className="text-5xl font-bold italic">Welcome to DSLink !</h1>
       </div>
       <div className="flex justify-center">
-        <h2 className="non-italic">It is a simple tool to shorten URL for free</h2>
+        <h2 className="text-sm non-italic">It is a simple tool to shorten URL for free</h2>
       </div>
-      <div>
-        <label htmlFor="URL" className="block text-sm font-medium leading-6 text-white">
+      <div className="mt-4 flex items-center">
+        <label htmlFor="url" className="block text-sm font-medium leading-6 text-white mr-2">
           URL
         </label>
-        <div className="relative mt-2 rounded-md shadow-sm">
-          <input
-            type="text"
-            name="url"
-            id="url"
-            placeholder="https://example.com"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="block w-full rounded-md border-0 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center">
-            <button
-              onClick={handleShortenClick}
-              className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            >
-              Shorten
-            </button>
-          </div>
-        </div>
+        <input
+          type="text"
+          name="url"
+          id="url"
+          placeholder="https://example.com"
+          value={url}
+          onChange={handleUrlChange}
+          className="block w-full rounded-md border-4 border-indigo-500 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 mr-2"
+        />
+        <button
+          onClick={handleShortenClick}
+          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
+          Shorten
+        </button>
       </div>
-      {shortenedUrl && (
+      {urlPairs.length > 0 && (
         <div className="mt-4 text-center">
-          <p>Shortened URL: <a href={shortenedUrl} className="text-blue-500">{shortenedUrl}</a></p>
+          <h3 className="text-lg font-medium">Shortened URLs:</h3>
+          <ul className="space-y-4">
+            {urlPairs.map((urlPair, index) => (
+              <li key={index} className="bg-white p-4 rounded-lg shadow-md border-4 border-indigo-500">
+                <div>
+                  <span className="text-gray-700 font-semibold">Original URL: </span>
+                  <a href={urlPair.originalUrl} className="text-blue-500 break-words">{urlPair.originalUrl}</a>
+                </div>
+                <span className="text-black">
+                  <FontAwesomeIcon icon={faArrowDown} />
+                </span>
+                <div className="flex items-center">
+                  <span className="text-gray-700 font-semibold">Shortened URL: </span>
+                  <a href={urlPair.shortenedUrl} className="text-blue-500 break-words ml-2">{urlPair.shortenedUrl}</a>
+                  <button
+                    onClick={() => handleCopyClick(urlPair.shortenedUrl)}
+                    className="ml-4 px-2 py-1 text-sm font-semibold text-white bg-indigo-600 rounded hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  >
+                    <FontAwesomeIcon icon={faCopy} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function Navbar() {
   return (
-    <main className="grid grid-cols-2 mx-10 my-5 p-4 rounded-lg border-double border-4 border-teal-400">
+    <main className="grid grid-cols-2 mx-10 my-5 p-4 rounded-lg border-double border-8 border-teal-400">
         <div className="flex justify-start">
             <a href="/">
                 <Image src="/images/dslink_banner.png" alt="DSLink Logo" width={150} height={37.5} priority={false} />
