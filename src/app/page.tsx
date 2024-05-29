@@ -2,6 +2,7 @@
 import { useState, ChangeEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { apiEndpoint } from './config';
 
 interface UrlPair {
   originalUrl: string;
@@ -11,25 +12,26 @@ interface UrlPair {
 
 export default function Home() {
   const [url, setUrl] = useState<string>('');
+  const [expirydays ,setExpirydays] = useState<number>(7);
   const [urlPairs, setUrlPairs] = useState<UrlPair[]>([]);
 
   const handleShortenClick = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:443/api/generate', {
+      const response = await fetch(apiEndpoint+'/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           url: url,
-          expiration_time: 7,
+          expirydays: expirydays,
           anonymous: true
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        const newShortenedUrl = `http://127.0.0.1:443/${data.hash}`;
+        const newShortenedUrl = `${apiEndpoint}/${data.hash}`;
         const expiryDays = data.expiryDays;
         const newUrlPair = { originalUrl: url, shortenedUrl: newShortenedUrl , expiryDays: expiryDays};
         setUrlPairs(prevPairs => [...prevPairs, newUrlPair]);
@@ -44,6 +46,10 @@ export default function Home() {
 
   const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
     setUrl(e.target.value);
+  };
+
+  const handleExpirydaysChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setExpirydays(Number(e.target.value));
   };
 
   const handleCopyClick = async (shortenedUrl: string) => {
@@ -76,6 +82,24 @@ export default function Home() {
           onChange={handleUrlChange}
           className="block w-full rounded-md border-4 border-indigo-500 py-1.5 pl-7 pr-20 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 mr-2"
         />
+      </div>
+      <div className="mt-4 flex items-center">
+        <label htmlFor="expirydays" className="block text-sm font-medium leading-6 text-white mr-2">
+          Expiration Date
+        </label>
+        <input
+          type="range"
+          name="expirydays"
+          id="expirydays"
+          min="1"
+          max="30"
+          value={expirydays}
+          onChange={handleExpirydaysChange}
+          className="mr-2"
+        />
+        <span className="text-white">{expirydays} days</span>
+      </div>
+      <div className="mt-4 flex items-center">
         <button
           onClick={handleShortenClick}
           className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -105,7 +129,7 @@ export default function Home() {
                   >
                     <FontAwesomeIcon icon={faCopy} />
                   </button>
-                  <span>Expiry after: {urlPair.expiryDays} days</span>
+                  <span className="ml-2">Expiry after: {urlPair.expiryDays} days</span>
                 </div>
               </li>
             ))}
