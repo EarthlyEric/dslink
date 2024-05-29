@@ -130,7 +130,7 @@ export default function Home() {
                     <FontAwesomeIcon icon={faCopy} />
                   </button>
                 </div>
-                <span className="ml-2">Expire after: {urlPair.expiryDays} days</span>
+                <span className="ml-2 text-gray-700">Expire after: {urlPair.expiryDays} days</span>
               </li>
             ))}
           </ul>
