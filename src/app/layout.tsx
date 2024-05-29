@@ -10,8 +10,6 @@ export const metadata: Metadata = {
   description: "A free shorten url service.",
 };
 
-export const apiEndpoint = "https://dslink-api.zeabur.app";
-
 export default function RootLayout({
   children,
 }: Readonly<{
