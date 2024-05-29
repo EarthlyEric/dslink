@@ -1,5 +1,5 @@
 'use client';
-import { useState, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown, faCopy } from '@fortawesome/free-solid-svg-icons';
 import { apiEndpoint } from './config';
@@ -12,12 +12,23 @@ interface UrlPair {
 
 export default function Home() {
   const [url, setUrl] = useState<string>('');
-  const [expirydays ,setExpirydays] = useState<number>(7);
+  const [expirydays, setExpirydays] = useState<number>(1);
   const [urlPairs, setUrlPairs] = useState<UrlPair[]>([]);
+
+  useEffect(() => {
+    const savedUrlPairs = localStorage.getItem('urlPairs');
+    if (savedUrlPairs) {
+      setUrlPairs(JSON.parse(savedUrlPairs));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('urlPairs', JSON.stringify(urlPairs));
+  }, [urlPairs]);
 
   const handleShortenClick = async () => {
     try {
-      const response = await fetch(apiEndpoint+'/api/generate', {
+      const response = await fetch(apiEndpoint + '/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -33,9 +44,9 @@ export default function Home() {
         const data = await response.json();
         const newShortenedUrl = `${apiEndpoint}/${data.hash}`;
         const expiryDays = data.expiryDays;
-        const newUrlPair = { originalUrl: url, shortenedUrl: newShortenedUrl , expiryDays: expiryDays};
-        setUrlPairs(prevPairs => [newUrlPair, ...prevPairs]);
-        setUrl(''); 
+        const newUrlPair = { originalUrl: url, shortenedUrl: newShortenedUrl, expiryDays: expiryDays };
+        setUrlPairs(prevPairs => [newUrlPair, ...prevPairs]); // Add new URL pair to the beginning of the array
+        setUrl('');
       } else {
         console.error('Failed to shorten URL');
       }
