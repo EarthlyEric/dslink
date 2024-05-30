@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, ChangeEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowDown, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiEndpoint } from './config';
 
 interface UrlPair {
@@ -72,6 +72,11 @@ export default function Home() {
     }
   };
 
+  const handleClearUrls = () => {
+    setUrlPairs([]);
+    localStorage.removeItem('urlPairs');
+  };
+
   return (
     <div className="min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8 grid grid-cols-1 mx-10 rounded-lg border-4">
       <div className="flex justify-center">
@@ -118,13 +123,18 @@ export default function Home() {
           Shorten
         </button>
       </div>
+      <div className="mt-4 text-center">
+          <h3 className="text-lg font-medium">Shortened URLs:</h3>
+          <button onClick={handleClearUrls} className="mt-2 px-2 py-1 text-sm font-semibold text-white bg-red-600 rounded hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
+      </div>
       {urlPairs.length > 0 && (
         <div className="mt-4 text-center">
-          <h3 className="text-lg font-medium">Shortened URLs:</h3>
           <ul className="space-y-4">
             {urlPairs.map((urlPair, index) => (
               <li key={index} className="bg-white p-4 rounded-lg shadow-md border-4 border-indigo-500 text-center">
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center mx-4">
                   <span className="text-gray-700 font-semibold">Original URL:</span>
                   <a href={urlPair.originalUrl} className="text-blue-500 break-words">{urlPair.originalUrl}</a>
                 </div>
