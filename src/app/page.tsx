@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown, faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { apiEndpoint } from './config';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import './animation.css'; 
+import './animation.css';
 import Alert from './components/alert';
 
 interface UrlPair {
@@ -17,8 +17,7 @@ export default function Home() {
   const [url, setUrl] = useState<string>('');
   const [expirydays, setExpirydays] = useState<number>(1);
   const [urlPairs, setUrlPairs] = useState<UrlPair[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [alerts, setAlerts] = useState<Array<{ id: number; message: string; type: string }>>([]);
 
   useEffect(() => {
     const savedUrlPairs = localStorage.getItem('urlPairs');
@@ -31,6 +30,15 @@ export default function Home() {
     localStorage.setItem('urlPairs', JSON.stringify(urlPairs));
   }, [urlPairs]);
 
+  const addAlert = (message: string, type: 'info' | 'success' | 'warning' | 'danger') => {
+    const newAlert = { id: Date.now(), message, type };
+    setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
+  };
+
+  const removeAlert = (id: number) => {
+    setAlerts((prevAlerts) => prevAlerts.filter((alert) => alert.id !== id));
+  };
+
   const isValidUrl = (urlString: string) => {
     try {
       new URL(urlString);
@@ -42,7 +50,7 @@ export default function Home() {
 
   const handleShortenClick = async () => {
     if (!isValidUrl(url)) {
-      setErrorMessage('Please enter a valid URL');
+      addAlert('Invalid URL', 'warning');
       return;
     }
 
@@ -50,30 +58,28 @@ export default function Home() {
       const response = await fetch(apiEndpoint + '/api/generate', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           url: url,
           expirydays: expirydays,
-          anonymous: true
-        })
+          anonymous: true,
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
         const newShortenedUrl = `${apiEndpoint}/${data.hash}`;
-        const expiryDays = data.expiryDays;
-        const newUrlPair = { originalUrl: url, shortenedUrl: newShortenedUrl, expiryDays: expiryDays };
-        setUrlPairs(prevPairs => [newUrlPair, ...prevPairs]);
+        const newUrlPair = { originalUrl: url, shortenedUrl: newShortenedUrl, expiryDays: data.expiryDays };
+        setUrlPairs((prevPairs) => [newUrlPair, ...prevPairs]);
         setUrl('');
-        setErrorMessage(null);
-        setSuccessMessage('Shortened URL copied to clipboard!');
+        addAlert('URL shortened successfully', 'success');
       } else {
-        setErrorMessage('Failed to shorten URL');
+        addAlert('An error occurred while shortening the URL', 'danger');
       }
     } catch (error) {
       console.error('Error:', error);
-      setErrorMessage('An error occurred while shortening the URL');
+      addAlert('An error occurred while shortening the URL', 'danger');
     }
   };
 
@@ -88,20 +94,22 @@ export default function Home() {
   const handleCopyClick = async (shortenedUrl: string) => {
     try {
       await navigator.clipboard.writeText(shortenedUrl);
-      setSuccessMessage('Shortened URL copied to clipboard!');
+      addAlert('URL copied to clipboard', 'info');
     } catch (error) {
       console.error('Failed to copy the URL', error);
-      setErrorMessage('Failed to copy the URL');
+      addAlert('Failed to copy the URL', 'danger');
     }
   };
 
   const handleClearUrls = () => {
+    if (urlPairs.length === 0) {
+      addAlert('No URLs to clear', 'warning');
+      return;
+    }
     setUrlPairs([]);
     localStorage.removeItem('urlPairs');
+    addAlert('URLs cleared successfully', 'success');
   };
-
-  const closeErrorMessage = () => setErrorMessage(null);
-  const closeSuccessMessage = () => setSuccessMessage(null);
 
   return (
     <main className="min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8 grid grid-cols-1 mx-10 rounded-lg border-4">
@@ -111,8 +119,19 @@ export default function Home() {
       <div className="flex justify-center">
         <h2 className="text-sm non-italic">It is a simple tool to shorten URL for free</h2>
       </div>
-      {errorMessage && <Alert message={errorMessage} type="danger" onClose={closeErrorMessage}/>}
-      {successMessage && <Alert message={successMessage} type="success" onClose={closeSuccessMessage} />}
+      <div className="fixed bottom-4 left-4 transform -translate-x-1/2 space-y-4">
+        <TransitionGroup>
+          {alerts.map((alert) => (
+            <CSSTransition key={alert.id} timeout={250} classNames="alert">
+              <Alert
+                message={alert.message}
+                type={alert.type as 'info' | 'success' | 'warning' | 'danger'}
+                onClose={() => removeAlert(alert.id)}
+              />
+            </CSSTransition>
+          ))}
+        </TransitionGroup>
+      </div>
       <div className="mt-4 flex items-center">
         <label htmlFor="url" className="block text-sm font-medium leading-6 text-white mr-2">
           URL
@@ -156,42 +175,31 @@ export default function Home() {
           onClick={handleClearUrls}
           className="rounded-md bg-red-600 px-5 py-2.5 text-white hover:bg-red-700"
         >
-          Clear All
+          Clear URLs
         </button>
       </div>
-      <div className="mt-4 flex items-center">
-        <TransitionGroup className="list">
-          {urlPairs.map((urlPair, index) => (
-            <CSSTransition key={index} timeout={500} classNames="item">
-              <div className="flex items-center justify-between w-full bg-white p-4 rounded shadow mb-2">
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600">{urlPair.originalUrl}</p>
-                  <div className="text-sm text-center text-black">
-                    <FontAwesomeIcon icon={faArrowDown} className="text-gray-500" />
+      <div className="mt-4">
+        {urlPairs.length > 0 && (
+          <div>
+            <h3 className="text-lg font-medium text-white">Shortened URLs</h3>
+            <ul className="mt-2 space-y-2">
+              {urlPairs.map((pair, index) => (
+                <li key={index} className="flex items-center justify-between bg-white p-2 rounded-md shadow">
+                  <div className="flex flex-col">
+                    <span className="text-gray-900">{pair.originalUrl}</span>
+                    <span className="text-indigo-600">{pair.shortenedUrl}</span>
                   </div>
-                  <p className="text-sm text-gray-800 font-semibold">{urlPair.shortenedUrl}</p>
-                  <p className="text-sm text-gray-600">
-                    Expires in {urlPair.expiryDays} day{urlPair.expiryDays === 1 ? '' : 's'}
-                  </p>
-                </div>
-                <div className="flex items-center">
                   <button
-                    onClick={() => handleCopyClick(urlPair.shortenedUrl)}
-                    className="text-blue-500 hover:text-blue-700 mx-2"
+                    onClick={() => handleCopyClick(pair.shortenedUrl)}
+                    className="ml-4 text-indigo-600 hover:text-indigo-800"
                   >
                     <FontAwesomeIcon icon={faCopy} />
                   </button>
-                  <button
-                    onClick={() => setUrlPairs(urlPairs.filter((_, i) => i !== index))}
-                    className="text-red-500 hover:text-red-700 mx-2"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </div>
-              </div>
-            </CSSTransition>
-          ))}
-        </TransitionGroup>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </main>
   );
