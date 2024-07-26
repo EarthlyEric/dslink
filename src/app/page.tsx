@@ -64,7 +64,7 @@ export default function Home() {
           url: url,
           expirydays: expirydays,
           anonymous: true,
-        }),
+        }, {mode:'cors'}),
       });
 
       if (response.ok) {
