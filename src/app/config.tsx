@@ -1,1 +1,1 @@
-export const apiEndpoint = process.env.API_ENDPOINT || 'https://dslink-api.zeabur.app';
+export const apiEndpoint = process.env.API_ENDPOINT || 'https://links.destinysoul.xyz';
