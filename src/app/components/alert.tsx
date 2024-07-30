@@ -52,7 +52,7 @@ const Alert: FC<AlertProps> = ({ message, type, onClose, autoDismiss = true, dis
 
   return (
     <CSSTransition in={true} timeout={250} classNames="alert" unmountOnExit>
-      <div className={`flex w-full md:w-96 shadow-lg rounded-lg ${getAlertStyles()} fixed bottom-0 left-0 right-0 mx-auto mb-4 md:mb-8`}>
+      <div className={`flex w-full max-w-md shadow-lg rounded-lg ${getAlertStyles()} fixed bottom-4 left-1/2 transform -translate-x-1/2`}>
         <div className="py-4 px-6 rounded-l-lg flex items-center text-white">
           <FontAwesomeIcon icon={getAlertIcons()} />
         </div>

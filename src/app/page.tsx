@@ -114,7 +114,7 @@ export default function Home() {
   return (
     <main className="min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8 grid grid-cols-1 mx-10 rounded-lg border-4">
       <div className="flex justify-center">
-        <h1 className="text-5xl font-bold italic">Welcome to DSLink !</h1>
+        <h1 className="sm:text-3xl text-5xl font-bold italic">Welcome to DSLink !</h1>
       </div>
       <div className="flex justify-center">
         <h2 className="text-sm non-italic">It is a simple tool to shorten URL for free</h2>
